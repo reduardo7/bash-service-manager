@@ -23,7 +23,7 @@ This is the action to execute. Please see _Actions_ section below for more infor
 
 If it is an invalid action or emtpy action, you can see the _help_.
 
-#### 2: SSERVICE_NAME ####
+#### 2: SERVICE_NAME ####
 
 This is the user friendly _Service Name_.
 
@@ -46,8 +46,8 @@ If it is an invalid action or emtpy action, you can see the _help_.
 * `tail`: See all _service_ output.
 * `tail-log`: See _service_ _std_ output.
 * `tail-error`: See _service_ _err_ output.
-* `run`: Execute _service_ _command_ and exit.
-* `debug`: Run _start service_ action and wait for user cancelation.
+* `run`: Execute _service command_ and exit (this action **does not** stop the _service_).
+* `debug`: Stop _service_ (if running) and run _service command_ and exit.
 
 ## Examples ##
 
