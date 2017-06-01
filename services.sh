@@ -5,27 +5,34 @@
 # export LOG_FILE_PATH="/tmp/my-service.log"
 # export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
-e() {
+@e() {
   echo "# $*"
+}
+
+@warn() {
+  @e "Warning: $*" >&2
+}
+
+@err() {
+  @e "Error! $*" >&2
+  exit 1
 }
 
 serviceStatus() {
   local serviceName="$1" # Service Name
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
-    local err=1
-    for p in $(cat "$PID_FILE_PATH"); do
-      if kill -0 $p >/dev/null 2>&1
-        then
-          e "Proccess with PID $p is running"
-          err=0
-        else
-          e "Proccess with PID $p is not running"
-        fi
-    done
-    return $err
+    local p=$(cat "$PID_FILE_PATH")
+    if kill -0 $p >/dev/null 2>&1
+      then
+        @e "Proccess with PID $p is running"
+        return 0
+      else
+        @e "Proccess with PID $p is not running"
+        return 1
+      fi
   else
-    e "Warning: PID file (${PID_FILE_PATH}) not exists or is empty"
+    @warn "PID file (${PID_FILE_PATH}) not exists or is empty"
     return 2
   fi
 }
@@ -37,21 +44,18 @@ serviceStart() {
 
   if serviceStatus "$1" >/dev/null 2>&1
     then
-      e "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
+      @e "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
       return 0
     fi
 
-  e "Starting ${serviceName} service..."
-  touch "$LOG_FILE_PATH" >/dev/null 2>&1
-  chmod a+rw "$LOG_FILE_PATH" >/dev/null 2>&1
-  touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1
-  chmod a+rw "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1
-  touch "$PID_FILE_PATH" >/dev/null 2>&1
-  chmod a+rw "$PID_FILE_PATH" >/dev/null 2>&1
+  @e "Starting ${serviceName} service..."
+  touch "$LOG_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_FILE_PATH file"
+  touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_ERROR_FILE_PATH file"
+  touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
 
   [ ! -z "$w" ] && cd "$w"
   #bash -i -c "$c >>\"$LOG_FILE_PATH\" 2>>\"$LOG_ERROR_FILE_PATH\" & echo \$! >>\"$PID_FILE_PATH\""
-  ( $c >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >>"$PID_FILE_PATH" ) &
+  ( $c >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
   sleep 2
 
   serviceStatus "$serviceName" >/dev/null 2>&1
@@ -62,7 +66,7 @@ serviceStop() {
   local serviceName="$1" # Service Name
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
-    e "Stopping ${serviceName}..."
+    @e "Stopping ${serviceName}..."
     for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1
         then
@@ -74,7 +78,7 @@ serviceStop() {
               sleep 2
               if kill -0 $p >/dev/null 2>&1
                 then
-                  e "Exec: sudo kill -9 $p"
+                  @e "Exec: sudo kill -9 $p"
                   sudo kill -9 $p
                 fi
             fi
@@ -84,7 +88,7 @@ serviceStop() {
     touch "$PID_FILE_PATH" >/dev/null 2>&1
     chmod a+rw "$PID_FILE_PATH" >/dev/null 2>&1
   else
-    e "Warning: PID file (${PID_FILE_PATH}) not exists or is empty"
+    @warn "PID file (${PID_FILE_PATH}) not exists or is empty"
   fi
 }
 
@@ -115,7 +119,7 @@ serviceTail() {
       exit 0
       ;;
     *)
-      e "Actions: [log|error]"
+      @e "Actions: [log|error]"
       exit 1
       ;;
   esac
@@ -146,7 +150,7 @@ serviceMenu() {
       ;;
     debug)
       serviceStop "$serviceName"
-      e "Debugging ${serviceName}..."
+      @e "Debugging ${serviceName}..."
       [ ! -z "$w" ] && cd "$w"
       bash -i -c "$c"
       ;;
@@ -160,7 +164,7 @@ serviceMenu() {
       serviceTail "$serviceName" "error"
       ;;
     *)
-      e "Actions: [start|stop|restart|status|run|debug|tail(-[log|error])]"
+      @e "Actions: [start|stop|restart|status|run|debug|tail(-[log|error])]"
       exit 1
       ;;
   esac
