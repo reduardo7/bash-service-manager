@@ -7,7 +7,7 @@ serviceStatus() {
 	if [ -f "$pidFile" ] && [ ! -z "$(cat "$pidFile")" ]; then
 		local err=1
 		for p in $(cat "$pidFile"); do
-			if kill -0 $p &>/dev/null
+			if kill -0 $p >/dev/null 2>&1
 				then
 					e "Proccess with PID $p is running"
 					err=0
@@ -31,24 +31,24 @@ serviceStart() {
 	local logFile="${logFilePath}/${serviceName}.log"
 	local logErrorFile="${logFilePath}/${serviceName}.error.log"
 
-	if serviceStatus "$1" &>/dev/null
+	if serviceStatus "$1" >/dev/null 2>&1
 		then
 			e "Service ${serviceName} already running with PID $(cat "$pidFile")"
 			return 0
 		fi
 
 	e "Starting ${serviceName} service..."
-	touch "$logFile" &>/dev/null
-	chmod a+rw "$logFile" &>/dev/null
-	touch "$logErrorFile" &>/dev/null
-	chmod a+rw "$logErrorFile" &>/dev/null
-	touch "$pidFile" &>/dev/null
-	chmod a+rw "$pidFile" &>/dev/null
+	touch "$logFile" >/dev/null 2>&1
+	chmod a+rw "$logFile" >/dev/null 2>&1
+	touch "$logErrorFile" >/dev/null 2>&1
+	chmod a+rw "$logErrorFile" >/dev/null 2>&1
+	touch "$pidFile" >/dev/null 2>&1
+	chmod a+rw "$pidFile" >/dev/null 2>&1
 
 	[ ! -z "$w" ] && cd "$w"
 	bash -i -c "$c >>\"$logFile\" 2>>\"$logErrorFile\" & echo \$! >>\"$pidFile\""
 
-	serviceStatus "$1" &>/dev/null
+	serviceStatus "$1" >/dev/null 2>&1
 	return $?
 }
 
@@ -59,15 +59,15 @@ serviceStop() {
 	if [ -f "$pidFile" ] && [ ! -z "$(cat "$pidFile")" ]; then
 		e "Stopping ${serviceName}..."
 		for p in $(cat "$pidFile"); do
-			if kill -0 $p &>/dev/null
+			if kill -0 $p >/dev/null 2>&1
 				then
 					kill $p
 					sleep 2
-					if kill -0 $p &>/dev/null
+					if kill -0 $p >/dev/null 2>&1
 						then
 							kill -9 $p
 							sleep 2
-							if kill -0 $p &>/dev/null
+							if kill -0 $p >/dev/null 2>&1
 								then
 									e "Exec: sudo kill -9 $p"
 									sudo kill -9 $p
@@ -76,8 +76,8 @@ serviceStop() {
 				fi
 		done
 		rm -f "$pidFile"
-		touch "$pidFile" &>/dev/null
-		chmod a+rw "$pidFile" &>/dev/null
+		touch "$pidFile" >/dev/null 2>&1
+		chmod a+rw "$pidFile" >/dev/null 2>&1
 	else
 		e "Warning: PID file (${pidFile}) not exists or is empty"
 	fi
@@ -164,7 +164,7 @@ serviceMenu() {
 
 # Example: MongoDB Service
 __mongo() {
-	serviceMenu "$1" "mongodb" "sudo rm -f /data/db/mongod.lock &>/dev/null ; sudo mongod"
+	serviceMenu "$1" "mongodb" "sudo rm -f /data/db/mongod.lock >/dev/null 2>&1 ; sudo mongod"
 }
 __mongo start
 __mongo stop
