@@ -74,7 +74,7 @@ If it is an invalid action or emtpy action, you can see the _help_.
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export PID_FILE_PATH="/tmp/my-service.pid"
 export LOG_FILE_PATH="/tmp/my-service.log"
 export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
@@ -102,7 +102,7 @@ $ mongo restart
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export PID_FILE_PATH="/tmp/my-service.pid"
 export LOG_FILE_PATH="/tmp/my-service.log"
 export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
@@ -124,7 +124,7 @@ serviceMenu "$action" "$serviceName" "$command" "$workDir"
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export PID_FILE_PATH="/tmp/my-service.pid"
 export LOG_FILE_PATH="/tmp/my-service.log"
 export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 

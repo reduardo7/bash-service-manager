@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export PID_FILE_PATH="/tmp/my-service.pid"
 export LOG_FILE_PATH="/tmp/my-service.log"
 export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 

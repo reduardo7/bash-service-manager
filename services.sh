@@ -1,7 +1,7 @@
 # Bash Service Manager
 # Project: https://github.com/reduardo7/bash-service-manager
 
-# export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+# export PID_FILE_PATH="/tmp/my-service.pid"
 # export LOG_FILE_PATH="/tmp/my-service.log"
 # export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
@@ -23,12 +23,13 @@ serviceStatus() {
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     local p=$(cat "$PID_FILE_PATH")
+
     if kill -0 $p >/dev/null 2>&1
       then
-        @e "Proccess with PID $p is running"
+        @e "Serive runnig with PID $p"
         return 0
       else
-        @e "Proccess with PID $p is not running"
+        @e "Service not running (process PID $p not exists)"
         return 1
       fi
   else
