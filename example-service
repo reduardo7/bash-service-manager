@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export LOG_FILE_PATH="/tmp/my-service.log"
+export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+
+. ./services.sh
+
+run-script() {
+  while true; do
+    echo foo
+    echo bar >&2
+    sleep 3
+  done
+}
+
+action="$1"
+serviceName="example-service"
+command="run-script" # Using "custom function"
+
+serviceMenu "$action" "$serviceName" "$command" "$workDir"

@@ -1,12 +1,20 @@
-#!/usr/bin/env bash
+# Bash Service Manager
+# Project: https://github.com/reduardo7/bash-service-manager
+
+# export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+# export LOG_FILE_PATH="/tmp/my-service.log"
+# export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+
+e() {
+  echo "# $*"
+}
 
 serviceStatus() {
   local serviceName="$1" # Service Name
-  local pidFile="/tmp/proccess-${serviceName}.pid"
 
-  if [ -f "$pidFile" ] && [ ! -z "$(cat "$pidFile")" ]; then
+  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     local err=1
-    for p in $(cat "$pidFile"); do
+    for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1
         then
           e "Proccess with PID $p is running"
@@ -17,7 +25,7 @@ serviceStatus() {
     done
     return $err
   else
-    e "Warning: PID file (${pidFile}) not exists or is empty"
+    e "Warning: PID file (${PID_FILE_PATH}) not exists or is empty"
     return 2
   fi
 }
@@ -26,39 +34,36 @@ serviceStart() {
   local serviceName="$1" # Service Name
   local c="$2" # Command
   local w="$3" # Workdir
-  local logFilePath="$PROJECTS_DIR"
-  local pidFile="/tmp/proccess-${serviceName}.pid"
-  local logFile="${logFilePath}/${serviceName}.log"
-  local logErrorFile="${logFilePath}/${serviceName}.error.log"
 
   if serviceStatus "$1" >/dev/null 2>&1
     then
-      e "Service ${serviceName} already running with PID $(cat "$pidFile")"
+      e "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
       return 0
     fi
 
   e "Starting ${serviceName} service..."
-  touch "$logFile" >/dev/null 2>&1
-  chmod a+rw "$logFile" >/dev/null 2>&1
-  touch "$logErrorFile" >/dev/null 2>&1
-  chmod a+rw "$logErrorFile" >/dev/null 2>&1
-  touch "$pidFile" >/dev/null 2>&1
-  chmod a+rw "$pidFile" >/dev/null 2>&1
+  touch "$LOG_FILE_PATH" >/dev/null 2>&1
+  chmod a+rw "$LOG_FILE_PATH" >/dev/null 2>&1
+  touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1
+  chmod a+rw "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1
+  touch "$PID_FILE_PATH" >/dev/null 2>&1
+  chmod a+rw "$PID_FILE_PATH" >/dev/null 2>&1
 
   [ ! -z "$w" ] && cd "$w"
-  bash -i -c "$c >>\"$logFile\" 2>>\"$logErrorFile\" & echo \$! >>\"$pidFile\""
+  #bash -i -c "$c >>\"$LOG_FILE_PATH\" 2>>\"$LOG_ERROR_FILE_PATH\" & echo \$! >>\"$PID_FILE_PATH\""
+  ( $c >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >>"$PID_FILE_PATH" ) &
+  sleep 2
 
-  serviceStatus "$1" >/dev/null 2>&1
+  serviceStatus "$serviceName" >/dev/null 2>&1
   return $?
 }
 
 serviceStop() {
   local serviceName="$1" # Service Name
-  local pidFile="/tmp/proccess-${serviceName}.pid"
 
-  if [ -f "$pidFile" ] && [ ! -z "$(cat "$pidFile")" ]; then
+  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     e "Stopping ${serviceName}..."
-    for p in $(cat "$pidFile"); do
+    for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1
         then
           kill $p
@@ -75,11 +80,11 @@ serviceStop() {
             fi
         fi
     done
-    rm -f "$pidFile"
-    touch "$pidFile" >/dev/null 2>&1
-    chmod a+rw "$pidFile" >/dev/null 2>&1
+    rm -f "$PID_FILE_PATH"
+    touch "$PID_FILE_PATH" >/dev/null 2>&1
+    chmod a+rw "$PID_FILE_PATH" >/dev/null 2>&1
   else
-    e "Warning: PID file (${pidFile}) not exists or is empty"
+    e "Warning: PID file (${PID_FILE_PATH}) not exists or is empty"
   fi
 }
 
@@ -95,21 +100,18 @@ serviceRestart() {
 serviceTail() {
   local serviceName="$1" # Service Name
   local type="$2"
-  local logFilePath="$PROJECTS_DIR"
-  local logFile="${logFilePath}/${serviceName}.log"
-  local logErrorFile="${logFilePath}/${serviceName}.error.log"
 
   case "$type" in
     log)
-      tail -f "$logFile"
+      tail -f "$LOG_FILE_PATH"
       exit 0
       ;;
     error)
-      tail -f "$logErrorFile"
+      tail -f "$LOG_ERROR_FILE_PATH"
       exit 0
       ;;
     all)
-      tail -f "$logFile" "$logErrorFile"
+      tail -f "$LOG_FILE_PATH" "$LOG_ERROR_FILE_PATH"
       exit 0
       ;;
     *)

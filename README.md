@@ -6,10 +6,26 @@ Create your custom service for development.
 ## Usage ##
 
 1. Create your _service script_.
-2. Copy `services.sh` content or import it at the beginning.
+2. Define the configuration variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
+2. Copy `services.sh` content or import it.
 3. Call `serviceMenu` function with next format: `serviceMenu ACTION SERVICE_NAME COMMAND [WORK_DIR]`
 4. Make your new _service script_ executable: `chmod a+x my-service-script`
 5. Use it!
+
+## Configuration Variables ##
+
+### PID_FILE_PATH ###
+
+Configure the `PID_FILE_PATH` variable before import `service.sh` script, and define the **PID** file path.
+
+### LOG_FILE_PATH ###
+
+Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and define the **LOG** file path.
+
+### LOG_ERROR_FILE_PATH ###
+
+Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
+
 
 ## servicesMenu function ##
 
@@ -58,6 +74,10 @@ If it is an invalid action or emtpy action, you can see the _help_.
 ```bash
 #!/usr/bin/env bash
 
+export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export LOG_FILE_PATH="/tmp/my-service.log"
+export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+
 # Import or paste "services.sh"
 . ./services.sh
 
@@ -82,6 +102,10 @@ $ mongo restart
 ```bash
 #!/usr/bin/env bash
 
+export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export LOG_FILE_PATH="/tmp/my-service.log"
+export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+
 # Import or paste "services.sh"
 . ./services.sh
 
@@ -99,6 +123,10 @@ serviceMenu "$action" "$serviceName" "$command" "$workDir"
 
 ```bash
 #!/usr/bin/env bash
+
+export PID_FILE_PATH="/tmp/proccess-my-service.pid"
+export LOG_FILE_PATH="/tmp/my-service.log"
+export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
 # Import or paste "services.sh"
 . ./services.sh
