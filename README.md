@@ -45,7 +45,9 @@ This is the user friendly _Service Name_.
 
 #### 3: COMMAND ####
 
-This is the command (or commands) that you must execute to start _your service_.
+This is the command that you must execute to start _your service_.
+
+**Important**: You need use an auxiliar funcion to define your _start script_.
 
 #### 4: WORK_DIR ####
 
