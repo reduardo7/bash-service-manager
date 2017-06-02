@@ -26,10 +26,10 @@ serviceStatus() {
 
     if kill -0 $p >/dev/null 2>&1
       then
-        @e "Serive runnig with PID $p"
+        @e "Serive $serviceName is runnig with PID $p"
         return 0
       else
-        @e "Service not running (process PID $p not exists)"
+        @e "Service $serviceName is not running (process PID $p not exists)"
         return 1
       fi
   else
@@ -55,8 +55,7 @@ serviceStart() {
   touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
 
   [ ! -z "$w" ] && cd "$w"
-  #bash -i -c "$c >>\"$LOG_FILE_PATH\" 2>>\"$LOG_ERROR_FILE_PATH\" & echo \$! >>\"$PID_FILE_PATH\""
-  ( $c >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
+  ( "$c" >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
   sleep 2
 
   serviceStatus "$serviceName" >/dev/null 2>&1
@@ -146,14 +145,16 @@ serviceMenu() {
       serviceStatus "$serviceName"
       ;;
     run)
-      [ ! -z "$w" ] && cd "$w"
-      bash -i -c "$c"
+      ( [ ! -z "$w" ] && cd "$w"
+        "$c"
+      )
       ;;
     debug)
       serviceStop "$serviceName"
       @e "Debugging ${serviceName}..."
-      [ ! -z "$w" ] && cd "$w"
-      bash -i -c "$c"
+      ( [ ! -z "$w" ] && cd "$w"
+        "$c"
+      )
       ;;
     tail)
       serviceTail "$serviceName" "all"

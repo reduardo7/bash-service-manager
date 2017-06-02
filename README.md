@@ -81,9 +81,14 @@ export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 # Import or paste "services.sh"
 . ./services.sh
 
+run-mongo() {
+  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
+  sudo mongod
+}
+
 action="$1"
 serviceName="mongodb"
-command="sudo rm -f /data/db/mongod.lock >/dev/null 2>&1 ; sudo mongod"
+command="run-mongo"
 
 serviceMenu "$action" "$serviceName" "$command"
 ```
@@ -109,9 +114,13 @@ export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 # Import or paste "services.sh"
 . ./services.sh
 
+run-custom() {
+  bash my-service-script.sh
+}
+
 action="$1"
 serviceName="my-service"
-command="bash my-service-script.sh"
+command="run-custom"
 workDir="/opt/my-service"
 
 serviceMenu "$action" "$serviceName" "$command" "$workDir"
@@ -132,13 +141,22 @@ export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 . ./services.sh
 
 # Mong
+run-mongo() {
+  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
+  sudo mongod
+}
+
 mongo() {
-	serviceMenu "$1" "mongodb" "sudo rm -f /data/db/mongod.lock >/dev/null 2>&1 ; sudo mongod"
+  serviceMenu "$1" "mongodb" "run-mongo"
+}
+
+run-custom() {
+  bash my-script.sh
 }
 
 # Custom Service
 custom() {
-	serviceMenu "$1" "my-script" "bash my-script.sh" "/home/user/my-project"
+  serviceMenu "$1" "my-script" "run-custom" "/home/user/my-project"
 }
 
 $1 $2
