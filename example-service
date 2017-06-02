@@ -7,9 +7,14 @@ export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 . ./services.sh
 
 run-script() {
+  local action="$1" # Action
+
   while true; do
+    echo "Running action '${action}'"
     echo foo
     echo bar >&2
+
+    [ "$action" = "run" ] && return 0
     sleep 5
   done
 }

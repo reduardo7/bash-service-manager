@@ -42,6 +42,7 @@
   local serviceName="$1" # Service Name
   local c="$2" # Command
   local w="$3" # Workdir
+  local action="$4" # Action
 
   if @serviceStatus "$serviceName" >/dev/null 2>&1
     then
@@ -55,7 +56,7 @@
   touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
 
   [ ! -z "$w" ] && cd "$w"
-  ( "$c" >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
+  ( "$c" $action >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
   sleep 2
 
   @serviceStatus "$serviceName" >/dev/null 2>&1
@@ -104,9 +105,10 @@
   local serviceName="$1" # Service Name
   local c="$2" # Command
   local w="$3" # Workdir
+  local action="$4" # Action
 
   @serviceStop "$serviceName"
-  @serviceStart "$serviceName" "$c" "$w"
+  @serviceStart "$serviceName" "$c" "$w" $action
 }
 
 @serviceTail() {
@@ -136,34 +138,34 @@
 # Service menu
 
 serviceMenu() {
-  local action="$1"
-  local serviceName="$2"
-  local c="$3"
-  local w="$4"
+  local action="$1" # Action to execute
+  local serviceName="$2" # Friendly service name
+  local c="$3" # Command to run
+  local w="$4" # Working Directory
 
   case "$action" in
     start)
-      @serviceStart "$serviceName" "$c" "$w"
+      @serviceStart "$serviceName" "$c" "$w" "$action"
       ;;
     stop)
       @serviceStop "$serviceName"
       ;;
     restart)
-      @serviceRestart "$serviceName" "$c" "$w"
+      @serviceRestart "$serviceName" "$c" "$w" "$action"
       ;;
     status)
       @serviceStatus "$serviceName"
       ;;
     run)
       ( [ ! -z "$w" ] && cd "$w"
-        "$c"
+        "$c" "$action"
       )
       ;;
     debug)
       @serviceStop "$serviceName"
       @e "Debugging ${serviceName}..."
       ( [ ! -z "$w" ] && cd "$w"
-        "$c"
+        "$c" "$action"
       )
       ;;
     tail)
