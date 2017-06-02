@@ -18,7 +18,7 @@
   exit 1
 }
 
-serviceStatus() {
+@serviceStatus() {
   local serviceName="$1" # Service Name
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
@@ -33,17 +33,17 @@ serviceStatus() {
         return 1
       fi
   else
-    @warn "PID file (${PID_FILE_PATH}) not exists or is empty"
+    @warn "PID file ($PID_FILE_PATH) not exists or is empty"
     return 2
   fi
 }
 
-serviceStart() {
+@serviceStart() {
   local serviceName="$1" # Service Name
   local c="$2" # Command
   local w="$3" # Workdir
 
-  if serviceStatus "$1" >/dev/null 2>&1
+  if @serviceStatus "$serviceName" >/dev/null 2>&1
     then
       @e "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
       return 0
@@ -58,14 +58,16 @@ serviceStart() {
   ( "$c" >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
   sleep 2
 
-  serviceStatus "$serviceName" >/dev/null 2>&1
+  @serviceStatus "$serviceName" >/dev/null 2>&1
   return $?
 }
 
-serviceStop() {
+@serviceStop() {
   local serviceName="$1" # Service Name
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
+    touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not touch $PID_FILE_PATH file"
+
     @e "Stopping ${serviceName}..."
     for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1
@@ -80,28 +82,34 @@ serviceStop() {
                 then
                   @e "Exec: sudo kill -9 $p"
                   sudo kill -9 $p
+                  sleep 2
                 fi
             fi
         fi
     done
-    rm -f "$PID_FILE_PATH"
-    touch "$PID_FILE_PATH" >/dev/null 2>&1
-    chmod a+rw "$PID_FILE_PATH" >/dev/null 2>&1
+
+    if @serviceStatus "$serviceName" >/dev/null 2>&1
+      then
+        @err "Error stopping Service ${serviceName}! Service already running with PID $(cat "$PID_FILE_PATH")"
+      fi
+
+    rm -f "$PID_FILE_PATH" || @err "Can not delete $PID_FILE_PATH file"
+    return 0
   else
-    @warn "PID file (${PID_FILE_PATH}) not exists or is empty"
+    @warn "PID file ($PID_FILE_PATH) not exists or is empty"
   fi
 }
 
-serviceRestart() {
+@serviceRestart() {
   local serviceName="$1" # Service Name
   local c="$2" # Command
   local w="$3" # Workdir
 
-  serviceStop "$serviceName"
-  serviceStart "$serviceName" "$c" "$w"
+  @serviceStop "$serviceName"
+  @serviceStart "$serviceName" "$c" "$w"
 }
 
-serviceTail() {
+@serviceTail() {
   local serviceName="$1" # Service Name
   local type="$2"
 
@@ -125,6 +133,8 @@ serviceTail() {
   esac
 }
 
+# Service menu
+
 serviceMenu() {
   local action="$1"
   local serviceName="$2"
@@ -133,16 +143,16 @@ serviceMenu() {
 
   case "$action" in
     start)
-      serviceStart "$serviceName" "$c" "$w"
+      @serviceStart "$serviceName" "$c" "$w"
       ;;
     stop)
-      serviceStop "$serviceName"
+      @serviceStop "$serviceName"
       ;;
     restart)
-      serviceRestart "$serviceName" "$c" "$w"
+      @serviceRestart "$serviceName" "$c" "$w"
       ;;
     status)
-      serviceStatus "$serviceName"
+      @serviceStatus "$serviceName"
       ;;
     run)
       ( [ ! -z "$w" ] && cd "$w"
@@ -150,20 +160,20 @@ serviceMenu() {
       )
       ;;
     debug)
-      serviceStop "$serviceName"
+      @serviceStop "$serviceName"
       @e "Debugging ${serviceName}..."
       ( [ ! -z "$w" ] && cd "$w"
         "$c"
       )
       ;;
     tail)
-      serviceTail "$serviceName" "all"
+      @serviceTail "$serviceName" "all"
       ;;
     tail-log)
-      serviceTail "$serviceName" "log"
+      @serviceTail "$serviceName" "log"
       ;;
     tail-error)
-      serviceTail "$serviceName" "error"
+      @serviceTail "$serviceName" "error"
       ;;
     *)
       @e "Actions: [start|stop|restart|status|run|debug|tail(-[log|error])]"
