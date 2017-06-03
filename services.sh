@@ -18,6 +18,40 @@
   exit 1
 }
 
+@execService() {
+  local c="$1" # Command
+  local w="$2" # Workdir
+  local action="$3" # Action
+  local onStart="$4" # On start
+  local onFinish="$5" # On finish
+
+  (
+    [ ! -z "$w" ] && cd "$w"
+
+    if [ ! -z "$onStart" ]; then
+      ( "$onStart" "$action" )
+      exitCode=$?
+
+      if [ $exitCode -gt 0 ] ; then
+        @warn "Start service fail"
+        exit $exitCode
+      fi
+    fi
+
+    if [ ! -z "$onFinish" ]; then
+      onServiceFinish() {
+        local exitCode=$?
+        "$onFinish" "$action" $exitCode
+        return $exitCode
+      }
+      trap onServiceFinish EXIT
+    fi
+
+    "$c" "$action"
+  )
+  return $?
+}
+
 @serviceStatus() {
   local serviceName="$1" # Service Name
 
@@ -43,6 +77,8 @@
   local c="$2" # Command
   local w="$3" # Workdir
   local action="$4" # Action
+  local onStart="$5" # On start
+  local onFinish="$6" # On finish
 
   if @serviceStatus "$serviceName" >/dev/null 2>&1
     then
@@ -55,8 +91,11 @@
   touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_ERROR_FILE_PATH file"
   touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
 
-  [ ! -z "$w" ] && cd "$w"
-  ( "$c" $action >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" ) &
+  (
+    (
+      @execService "$c" "$w" "$action" "$onStart" "$onFinish"
+    ) >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" 
+  ) &
   sleep 2
 
   @serviceStatus "$serviceName" >/dev/null 2>&1
@@ -106,9 +145,11 @@
   local c="$2" # Command
   local w="$3" # Workdir
   local action="$4" # Action
+  local onStart="$5" # On start
+  local onFinish="$6" # On finish
 
   @serviceStop "$serviceName"
-  @serviceStart "$serviceName" "$c" "$w" $action
+  @serviceStart "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
 }
 
 @serviceTail() {
@@ -135,6 +176,22 @@
   esac
 }
 
+@serviceDebug() {
+  local serviceName="$1" # Service Name
+  local c="$2" # Command
+  local w="$3" # Workdir
+  local action="$4" # Action
+  local onStart="$5" # On start
+  local onFinish="$6" # On finish
+
+  @serviceStop "$serviceName"
+  @e "Debugging ${serviceName}..."
+  @execService "$c" "$w" "$action" "$onStart" "$onFinish"
+  exitCode=$?
+  @e "Finish debugging ${serviceName}"
+  return $exitCode
+}
+
 # Service menu
 
 serviceMenu() {
@@ -142,16 +199,18 @@ serviceMenu() {
   local serviceName="$2" # Friendly service name
   local c="$3" # Command to run
   local w="$4" # Working Directory
+  local onStart="$5" # On start
+  local onFinish="$6" # On finish
 
   case "$action" in
     start)
-      @serviceStart "$serviceName" "$c" "$w" "$action"
+      @serviceStart "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
       ;;
     stop)
       @serviceStop "$serviceName"
       ;;
     restart)
-      @serviceRestart "$serviceName" "$c" "$w" "$action"
+      @serviceRestart "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
       ;;
     status)
       @serviceStatus "$serviceName"
@@ -162,11 +221,7 @@ serviceMenu() {
       )
       ;;
     debug)
-      @serviceStop "$serviceName"
-      @e "Debugging ${serviceName}..."
-      ( [ ! -z "$w" ] && cd "$w"
-        "$c" "$action"
-      )
+      @serviceDebug "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
       ;;
     tail)
       @serviceTail "$serviceName" "all"

@@ -45,13 +45,40 @@ This is the user friendly _Service Name_.
 
 #### 3: COMMAND ####
 
-This is the command that you must execute to start _your service_.
+This is the _command function_ that you must execute to start _your service_.
 
-**Important**: You need use an auxiliar funcion to define your _start script_.
+**Parameters:**
+
+1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 
 #### 4: WORK_DIR ####
 
-**This is optional**. The working directory is set, where it must be located to execute the _COMMAND_.
+**This is optional**
+
+The working directory is set, where it must be located to execute the _COMMAND_.
+
+#### 5: ON_START ####
+
+**This is optional**
+
+Function to execute before _Service Funcion_ start.
+
+If function exit code is not `0` (zero), the service will not started.
+
+**Parameters:**
+
+1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
+
+#### 6: ON_FINISH ####
+
+**This is optional**
+
+_Function_ to execute after _Service Function_ finish/exit.
+
+**Parameters:**
+
+1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
+2. `serviceExitCode`: The **COMMAND** _Exit Code_.
 
 ## Actions ##
 
