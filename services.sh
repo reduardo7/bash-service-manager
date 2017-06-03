@@ -67,7 +67,7 @@
         return 1
       fi
   else
-    @warn "PID file ($PID_FILE_PATH) not exists or is empty"
+    @e "Service $serviceName is not running"
     return 2
   fi
 }
@@ -136,7 +136,7 @@
     rm -f "$PID_FILE_PATH" || @err "Can not delete $PID_FILE_PATH file"
     return 0
   else
-    @warn "PID file ($PID_FILE_PATH) not exists or is empty"
+    @warn "Service $serviceName is not running"
   fi
 }
 
