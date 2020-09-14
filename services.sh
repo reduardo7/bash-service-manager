@@ -57,15 +57,25 @@
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     local p=$(cat "$PID_FILE_PATH")
+    killResultMessage=$(kill -0 $p 2>&1)
+    killResultCode=$?
 
-    if kill -0 $p >/dev/null 2>&1
+    if (( $killResultCode == 0 ));
       then
-        @e "Serive $serviceName is runnig with PID $p"
+        @e "Service $serviceName is runnig with PID $p"
         return 0
+      elif [[ $killResultMessage == *"kill: ($p) - No such process" ]]
+        then
+          @e "Service $serviceName is not running (process PID $p not exists)"
+          return 2
+      elif [[ $killResultMessage == *"kill: ($p) - Operation not permitted" ]]
+        then
+          @e "Status of $serviceName service could not be obtained (operation not permitted for process PID $p)"
+          return 1
       else
-        @e "Service $serviceName is not running (process PID $p not exists)"
+        @e "Status of $serviceName service could not be obtained (process PID $p)"
         return 1
-      fi
+    fi
   else
     @e "Service $serviceName is not running"
     return 2
@@ -130,7 +140,7 @@
 
     if @serviceStatus "$serviceName" >/dev/null 2>&1
       then
-        @err "Error stopping Service ${serviceName}! Service already running with PID $(cat "$PID_FILE_PATH")"
+        @err "Error stopping Service ${serviceName}! Service is still running with PID $(cat "$PID_FILE_PATH")"
       fi
 
     rm -f "$PID_FILE_PATH" || @err "Can not delete $PID_FILE_PATH file"
