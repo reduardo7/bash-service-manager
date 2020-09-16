@@ -56,28 +56,28 @@
   local serviceName="$1" # Service Name
 
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
-    local p=$(cat "$PID_FILE_PATH")
-    killResultMessage=$(kill -0 $p 2>&1)
+    local PID=$(cat "$PID_FILE_PATH")
+    killResultMessage=$(kill -0 $PID 2>&1)
     killResultCode=$?
 
     if (( $killResultCode == 0 ));
       then
-        @e "Service $serviceName is runnig with PID $p"
+        @e "Service $serviceName is runnig with PID $PID"
         return 0
-      elif [[ $killResultMessage == *"kill: ($p) - No such process" ]]
+      elif [[ $killResultMessage == *"kill: ($PID) - No such process" ]]
         then
-          @e "Service $serviceName is not running (process PID $p not exists)"
+          @warn "Service $serviceName is not running (process PID $PID not exists)"
           return 2
-      elif [[ $killResultMessage == *"kill: ($p) - Operation not permitted" ]]
+      elif [[ $killResultMessage == *"kill: ($PID) - Operation not permitted" ]]
         then
-          @e "Status of $serviceName service could not be obtained (operation not permitted for process PID $p)"
+          @warn "Status of $serviceName service could not be obtained (operation not permitted for process PID $PID)"
           return 1
       else
-        @e "Status of $serviceName service could not be obtained (process PID $p)"
+        @warn "Status of $serviceName service could not be obtained (process PID $PID)"
         return 1
     fi
   else
-    @e "Service $serviceName is not running"
+    @warn "Service $serviceName is not running"
     return 2
   fi
 }
@@ -159,6 +159,7 @@
   local onFinish="$6" # On finish
 
   @serviceStop "$serviceName"
+  sleep 2
   @serviceStart "$serviceName" "$c" "$w" "$action" "$onStart" "$onFinish"
 }
 
@@ -180,7 +181,7 @@
       exit 0
       ;;
     *)
-      @e "Actions: [log|error]"
+      @e "Usage: {log|error}"
       exit 1
       ;;
   esac
@@ -243,7 +244,7 @@ serviceMenu() {
       @serviceTail "$serviceName" "error"
       ;;
     *)
-      @e "Actions: [start|stop|restart|status|run|debug|tail(-[log|error])]"
+      @e "Usage: {start|stop|restart|status|run|debug|tail(-{log|error})}"
       exit 1
       ;;
   esac
