@@ -18,40 +18,6 @@
   exit 1
 }
 
-@execService() {
-  local c="$1" # Command
-  local w="$2" # Workdir
-  local action="$3" # Action
-  local onStart="$4" # On start
-  local onFinish="$5" # On finish
-
-  (
-    [ ! -z "$w" ] && cd "$w"
-
-    if [ ! -z "$onStart" ]; then
-      ( "$onStart" "$action" )
-      exitCode=$?
-
-      if [ $exitCode -gt 0 ] ; then
-        @warn "Start service fail"
-        exit $exitCode
-      fi
-    fi
-
-    if [ ! -z "$onFinish" ]; then
-      onServiceFinish() {
-        local exitCode=$?
-        "$onFinish" "$action" $exitCode
-        return $exitCode
-      }
-      trap onServiceFinish EXIT
-    fi
-
-    "$c" "$action"
-  )
-  return $?
-}
-
 @serviceStatus() {
   local serviceName="$1" # Service Name
 
@@ -101,11 +67,29 @@
   touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_ERROR_FILE_PATH file"
   touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
 
-  (
-    (
-      @execService "$c" "$w" "$action" "$onStart" "$onFinish"
-    ) >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" 
-  ) &
+  [ ! -z "$w" ] && cd "$w"
+
+  if [ ! -z "$onStart" ]; then
+    ( "$onStart" "$action" )
+    exitCode=$?
+
+    if [ $exitCode -gt 0 ] ; then
+      @warn "Start service fail"
+      exit $exitCode
+    fi
+  fi
+
+  if [ ! -z "$onFinish" ]; then
+    onServiceFinish() {
+      local exitCode=$?
+      "$onFinish" "$action" $exitCode
+      return $exitCode
+    }
+    trap onServiceFinish EXIT
+  fi
+
+  $c >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" 
+
   sleep 2
 
   @serviceStatus "$serviceName" >/dev/null 2>&1
