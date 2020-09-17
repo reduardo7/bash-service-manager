@@ -45,7 +45,7 @@ This is the user friendly _Service Name_.
 
 #### 3: COMMAND ####
 
-This is the _command function_ that you must execute to start _your service_.
+This is the _commands_ that you must execute to start _your service_.
 
 **Parameters:**
 
@@ -61,7 +61,7 @@ The working directory is set, where it must be located to execute the _COMMAND_.
 
 **This is optional**
 
-Function to execute before _Service Funcion_ start.
+Commands to execute before _Service_ start.
 
 If function exit code is not `0` (zero), the service will not started.
 
@@ -73,7 +73,7 @@ If function exit code is not `0` (zero), the service will not started.
 
 **This is optional**
 
-_Function_ to execute after _Service Function_ finish/exit.
+Commands to execute after _Service_ finish/exit.
 
 **Parameters:**
 
@@ -96,28 +96,23 @@ If it is an invalid action or emtpy action, you can see the _help_.
 
 ## Examples ##
 
-### MongoDB Service ###
+### Telegraf Service ###
 
-**mongo** file:
+**telegraf.sh** file:
 
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+appDir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd)
 
-# Import or paste "services.sh"
-. ./services.sh
+export LOG_FILE_PATH="$serviceName.log"
+export LOG_ERROR_FILE_PATH="$serviceName.error.log"
+export PID_FILE_PATH="$serviceName.pid"
 
-run-mongo() {
-  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
-  sudo mongod
-}
+. $appDir/services.sh
 
 action="$1"
-serviceName="mongodb"
-command="run-mongo"
+command="$appDir/telegraf --config $appDir/telegraf.conf"
 
 serviceMenu "$action" "$serviceName" "$command"
 ```
@@ -125,8 +120,8 @@ serviceMenu "$action" "$serviceName" "$command"
 In console:
 
 ```bash
-$ mongo status
-$ mongo restart
+$ telegraf.sh status
+$ telegraf.sh restart
 ```
 
 ### Custom Service ###
@@ -136,64 +131,15 @@ $ mongo restart
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+export PID_FILE_PATH="my-service.pid"
+export LOG_FILE_PATH="my-service.log"
+export LOG_ERROR_FILE_PATH="my-service.error.log"
 
-# Import or paste "services.sh"
 . ./services.sh
-
-run-custom() {
-  bash my-service-script.sh
-}
 
 action="$1"
-serviceName="my-service"
-command="run-custom"
-workDir="/opt/my-service"
+serviceName="Example Service"
+command="ping 1.1.1.1"
 
 serviceMenu "$action" "$serviceName" "$command" "$workDir"
-```
-
-### Multiple Services ###
-
-**my-services** file:
-
-```bash
-#!/usr/bin/env bash
-
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
-
-# Import or paste "services.sh"
-. ./services.sh
-
-# Mong
-run-mongo() {
-  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
-  sudo mongod
-}
-
-mongo() {
-  serviceMenu "$1" "mongodb" "run-mongo"
-}
-
-run-custom() {
-  bash my-script.sh
-}
-
-# Custom Service
-custom() {
-  serviceMenu "$1" "my-script" "run-custom" "/home/user/my-project"
-}
-
-$1 $2
-```
-
-In console:
-
-```bash
-$ my-services mongo status
-$ my-services custom restart
 ```
