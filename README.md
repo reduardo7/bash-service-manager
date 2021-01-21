@@ -109,7 +109,7 @@ export LOG_FILE_PATH="$serviceName.log"
 export LOG_ERROR_FILE_PATH="$serviceName.error.log"
 export PID_FILE_PATH="$serviceName.pid"
 
-. $appDir/services.sh
+. "$appDir/services.sh"
 
 action="$1"
 command="$appDir/telegraf --config $appDir/telegraf.conf"
