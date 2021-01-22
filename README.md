@@ -111,10 +111,20 @@ export PID_FILE_PATH="$serviceName.pid"
 
 . "$appDir/services.sh"
 
-action="$1"
-command="$appDir/telegraf --config $appDir/telegraf.conf"
+# Action to execute
+action="$1"  
+# Friendly service name
+serviceName= "telegraf"
+# Command to run
+command=(./telegraf --config "telegraf.conf")
+# Working Directory
+workDir="$appDir"
+# On start
+#onStart=
+# On finish
+#onFinish=
 
-serviceMenu "$action" "$serviceName" "$command"
+@serviceMenu
 ```
 
 In console:
@@ -137,9 +147,18 @@ export LOG_ERROR_FILE_PATH="my-service.error.log"
 
 . ./services.sh
 
-action="$1"
+# Action to execute
+action="$1"  
+# Friendly service name
 serviceName="Example Service"
-command="ping 1.1.1.1"
+# Command to run
+command=("ping 1.1.1.1")
+# Working Directory
+#workDir=
+# On start
+#onStart=
+# On finish
+#onFinish=
 
-serviceMenu "$action" "$serviceName" "$command" "$workDir"
+@serviceMenu
 ```
