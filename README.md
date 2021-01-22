@@ -8,9 +8,10 @@ Create your custom service for development.
 1. Create your _service script_.
 2. Define the configuration variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
 2. Copy `services.sh` content or import it.
-3. Call `serviceMenu` function with next format: `serviceMenu ACTION SERVICE_NAME COMMAND [WORK_DIR]`
-4. Make your new _service script_ executable: `chmod a+x my-service-script`
-5. Use it!
+3. Assign $action, $serviceName, $command (mandatory); $workDir, $onStart, $onFinish (optional) variables 
+4. Call `@serviceMenu` function
+5. Make your new _service script_ executable: `chmod a+x my-service-script`
+6. Use it!
 
 ## Configuration Variables ##
 
@@ -27,11 +28,11 @@ Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and de
 Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
 
 
-## servicesMenu function ##
+## @servicesMenu function ##
 
 Just call only this function to make everything work!
 
-### Arguments ###
+### Variables ###
 
 #### 1: ACTION ####
 
