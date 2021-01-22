@@ -9,7 +9,7 @@ Create your custom service for development.
 2. Define the configuration environment variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
 3. Define the configuration variables
    * Mandatory configuration variables: `$action`, `$serviceName`, `$command` (array) 
-   * Optional configuration variables: `$workDir`, `$onStart`, `$onFinish`  
+   * Optional configuration variables: `$workDir`, `$onStart` (array), `$onFinish` (array) 
 4. Copy `services.sh` content or import it.
 5. Call `serviceMenu` function
 6. Make your new _service script_ executable: `chmod a+x my-service-script`
@@ -61,22 +61,17 @@ The working directory is set, where it must be located to execute the _command_.
 
 #### onStart ####
 
+**This is array variable**
+
 Commands to execute before _Service_ start.
 
 If function exit code is not `0` (zero), the service will not started.
 
-**Parameters:**
-
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
-
 #### onFinish ####
 
+**This is array variable**
+
 Commands to execute after _Service_ finish/exit.
-
-**Parameters:**
-
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
-2. `serviceExitCode`: The **command** _Exit Code_.
 
 ## servicesMenu function ##
 
@@ -121,9 +116,9 @@ serviceName= "telegraf"
 command=(./telegraf --config telegraf.conf)
 # Working Directory (optional)
 workDir="$appDir"
-# On start (optional)
+# On start (optional, array variable)
 #onStart=
-# On finish (optional)
+# On finish (optional, array variable)
 #onFinish=
 
 serviceMenu
@@ -157,9 +152,9 @@ serviceName="Example Service"
 command=("ping 1.1.1.1")
 # Working Directory (optional)
 #workDir=
-# On start (optional)
+# On start (optional, array variable)
 #onStart=
-# On finish (optional)
+# On finish (optional, array variable)
 #onFinish=
 
 serviceMenu
