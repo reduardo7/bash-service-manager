@@ -43,9 +43,7 @@ If it is an invalid action or emtpy action, you can see the _help_.
 
 This is the user friendly _Service Name_.
 
-#### command ####
-
-**This is array variable**
+#### command (array variable) ####
 
 This is the _commands_ that you must execute to start _your service_.
 
@@ -55,17 +53,13 @@ This is the _commands_ that you must execute to start _your service_.
 
 The working directory is set, where it must be located to execute the _command_.
 
-#### onStart ####
-
-**This is array variable**
+#### onStart (array variable) ####
 
 Commands to execute before _Service_ start.
 
 If function exit code is not `0` (zero), the service will not started.
 
-#### onFinish ####
-
-**This is array variable**
+#### onFinish (array variable) ####
 
 Commands to execute after _Service_ finish/exit.
 
