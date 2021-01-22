@@ -8,8 +8,8 @@ Create your custom service for development.
 1. Create your _service script_.
 2. Define the configuration environment variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
 3. Define the configuration variables
-* Mandatory configuration variables: `$action`, `$serviceName`, `$command` (array) 
-* Optional configuration variables: `$workDir`, `$onStart`, `$onFinish`  
+   * Mandatory configuration variables: `$action`, `$serviceName`, `$command` (array) 
+   * Optional configuration variables: `$workDir`, `$onStart`, `$onFinish`  
 4. Copy `services.sh` content or import it.
 5. Call `serviceMenu` function
 6. Make your new _service script_ executable: `chmod a+x my-service-script`
