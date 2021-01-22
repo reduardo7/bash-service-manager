@@ -6,14 +6,16 @@ Create your custom service for development.
 ## Usage ##
 
 1. Create your _service script_.
-2. Define the configuration variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
-2. Copy `services.sh` content or import it.
-3. Assign $action, $serviceName, $command (mandatory); $workDir, $onStart, $onFinish (optional) variables 
-4. Call `serviceMenu` function
-5. Make your new _service script_ executable: `chmod a+x my-service-script`
-6. Use it!
+2. Define the configuration environment variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
+3. Define the configuration variables
+3.1. Mandatory configuration variables: `$action`, `$serviceName`, `$command` (array) 
+3.2. Optional configuration variables: `$workDir`, `$onStart`, `$onFinish`  
+4. Copy `services.sh` content or import it.
+5. Call `serviceMenu` function
+6. Make your new _service script_ executable: `chmod a+x my-service-script`
+7. Use it!
 
-## Configuration Variables ##
+## Configuration Environment Variables ##
 
 ### PID_FILE_PATH ###
 
@@ -27,29 +29,23 @@ Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and de
 
 Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
 
-## servicesMenu function ##
+## Configuration Variables ###
 
-Just call only this function to make everything work!
+### Mandatory Configuration Variables
 
-### Variables ###
-
-#### 1: action ####
-
-**mandatory**
+#### action ####
 
 This is the action to execute. Please see _Actions_ section below for more information.
 
 If it is an invalid action or emtpy action, you can see the _help_.
 
-#### 2: serviceName ####
-
-**mandatory**
+#### serviceName ####
 
 This is the user friendly _Service Name_.
 
-#### 3: command ####
+#### command ####
 
-**mandatory, array variable**
+**This is array variable**
 
 This is the _commands_ that you must execute to start _your service_.
 
@@ -57,15 +53,13 @@ This is the _commands_ that you must execute to start _your service_.
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 
-#### 4: workDir ####
+### Optional Configuration Variables
 
-**optional**
+#### workDir ####
 
 The working directory is set, where it must be located to execute the _COMMAND_.
 
-#### 5: onStart ####
-
-**optional**
+#### onStart ####
 
 Commands to execute before _Service_ start.
 
@@ -75,9 +69,7 @@ If function exit code is not `0` (zero), the service will not started.
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 
-#### 6: onFinish ####
-
-**optional**
+#### onFinish ####
 
 Commands to execute after _Service_ finish/exit.
 
@@ -85,6 +77,10 @@ Commands to execute after _Service_ finish/exit.
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 2. `serviceExitCode`: The **COMMAND** _Exit Code_.
+
+## servicesMenu function ##
+
+Just call only this function to make everything work!
 
 ## Actions ##
 
