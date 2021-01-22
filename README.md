@@ -118,7 +118,7 @@ action="$1"
 # Friendly service name (mandatoty)
 serviceName= "telegraf"
 # Command to run (mandatoty, array variable)
-command=(./telegraf --config "telegraf.conf")
+command=(./telegraf --config telegraf.conf)
 # Working Directory (optional)
 workDir="$appDir"
 # On start (optional)
