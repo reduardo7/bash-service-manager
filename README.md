@@ -49,10 +49,6 @@ This is the user friendly _Service Name_.
 
 This is the _commands_ that you must execute to start _your service_.
 
-**Parameters:**
-
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
-
 ### Optional Configuration Variables
 
 #### workDir ####
