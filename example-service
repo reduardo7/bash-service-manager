@@ -6,8 +6,17 @@ export LOG_ERROR_FILE_PATH="my-service.error.log"
 
 . ./services.sh
 
-action="$1"
+# Action to execute (mandatoty)
+action="$1"  
+# Friendly service name (mandatoty)
 serviceName="Example Service"
-command="ping 1.1.1.1"
+# Command to run (mandatoty, array variable)
+command=("ping 1.1.1.1")
+# Working Directory (optional)
+#workDir=
+# On start (optional, array variable)
+#onStart=()
+# On finish (optional, array variable)
+#onFinish=()
 
-serviceMenu "$action" "$serviceName" "$command" "$workDir"
+serviceMenu
