@@ -27,24 +27,29 @@ Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and de
 
 Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
 
-
 ## servicesMenu function ##
 
 Just call only this function to make everything work!
 
 ### Variables ###
 
-#### 1: ACTION ####
+#### 1: action ####
+
+**mandatory**
 
 This is the action to execute. Please see _Actions_ section below for more information.
 
 If it is an invalid action or emtpy action, you can see the _help_.
 
-#### 2: SERVICE_NAME ####
+#### 2: serviceName ####
+
+**mandatory**
 
 This is the user friendly _Service Name_.
 
-#### 3: COMMAND ####
+#### 3: command ####
+
+**mandatory, array variable**
 
 This is the _commands_ that you must execute to start _your service_.
 
@@ -52,15 +57,15 @@ This is the _commands_ that you must execute to start _your service_.
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 
-#### 4: WORK_DIR ####
+#### 4: workDir ####
 
-**This is optional**
+**optional**
 
 The working directory is set, where it must be located to execute the _COMMAND_.
 
-#### 5: ON_START ####
+#### 5: onStart ####
 
-**This is optional**
+**optional**
 
 Commands to execute before _Service_ start.
 
@@ -70,9 +75,9 @@ If function exit code is not `0` (zero), the service will not started.
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
 
-#### 6: ON_FINISH ####
+#### 6: onFinish ####
 
-**This is optional**
+**optional**
 
 Commands to execute after _Service_ finish/exit.
 
@@ -112,17 +117,17 @@ export PID_FILE_PATH="$serviceName.pid"
 
 . "$appDir/services.sh"
 
-# Action to execute
+# Action to execute (mandatoty)
 action="$1"  
-# Friendly service name
+# Friendly service name (mandatoty)
 serviceName= "telegraf"
-# Command to run
+# Command to run (mandatoty, array variable)
 command=(./telegraf --config "telegraf.conf")
-# Working Directory
+# Working Directory (optional)
 workDir="$appDir"
-# On start
+# On start (optional)
 #onStart=
-# On finish
+# On finish (optional)
 #onFinish=
 
 serviceMenu
@@ -148,17 +153,17 @@ export LOG_ERROR_FILE_PATH="my-service.error.log"
 
 . ./services.sh
 
-# Action to execute
+# Action to execute (mandatoty)
 action="$1"  
-# Friendly service name
+# Friendly service name (mandatoty)
 serviceName="Example Service"
-# Command to run
+# Command to run (mandatoty, array variable)
 command=("ping 1.1.1.1")
-# Working Directory
+# Working Directory (optional)
 #workDir=
-# On start
+# On start (optional)
 #onStart=
-# On finish
+# On finish (optional)
 #onFinish=
 
 serviceMenu
