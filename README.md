@@ -57,7 +57,7 @@ This is the _commands_ that you must execute to start _your service_.
 
 #### workDir ####
 
-The working directory is set, where it must be located to execute the _COMMAND_.
+The working directory is set, where it must be located to execute the _command_.
 
 #### onStart ####
 
@@ -76,7 +76,7 @@ Commands to execute after _Service_ finish/exit.
 **Parameters:**
 
 1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
-2. `serviceExitCode`: The **COMMAND** _Exit Code_.
+2. `serviceExitCode`: The **command** _Exit Code_.
 
 ## servicesMenu function ##
 
