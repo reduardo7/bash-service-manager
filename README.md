@@ -117,9 +117,9 @@ command=(./telegraf --config telegraf.conf)
 # Working Directory (optional)
 workDir="$appDir"
 # On start (optional, array variable)
-#onStart=
+#onStart=()
 # On finish (optional, array variable)
-#onFinish=
+#onFinish=()
 
 serviceMenu
 ```
@@ -153,9 +153,9 @@ command=("ping 1.1.1.1")
 # Working Directory (optional)
 #workDir=
 # On start (optional, array variable)
-#onStart=
+#onStart=()
 # On finish (optional, array variable)
-#onFinish=
+#onFinish=()
 
 serviceMenu
 ```
