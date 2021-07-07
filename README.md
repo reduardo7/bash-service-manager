@@ -6,13 +6,16 @@ Create your custom service for development.
 ## Usage ##
 
 1. Create your _service script_.
-2. Define the configuration variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
-2. Copy `services.sh` content or import it.
-3. Call `serviceMenu` function with next format: `serviceMenu ACTION SERVICE_NAME COMMAND [WORK_DIR]`
-4. Make your new _service script_ executable: `chmod a+x my-service-script`
-5. Use it!
+2. Define the configuration environment variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
+3. Define the configuration variables
+   * Mandatory configuration variables: `$action`, `$serviceName`, `$command` (array) 
+   * Optional configuration variables: `$workDir`, `$onStart` (array), `$onFinish` (array) 
+4. Copy `services.sh` content or import it.
+5. Call `serviceMenu` function
+6. Make your new _service script_ executable: `chmod a+x my-service-script`
+7. Use it!
 
-## Configuration Variables ##
+## Configuration Environment Variables ##
 
 ### PID_FILE_PATH ###
 
@@ -26,59 +29,43 @@ Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and de
 
 Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
 
+## Configuration Variables ###
 
-## servicesMenu function ##
+### Mandatory Configuration Variables
 
-Just call only this function to make everything work!
-
-### Arguments ###
-
-#### 1: ACTION ####
+#### action ####
 
 This is the action to execute. Please see _Actions_ section below for more information.
 
 If it is an invalid action or emtpy action, you can see the _help_.
 
-#### 2: SERVICE_NAME ####
+#### serviceName ####
 
 This is the user friendly _Service Name_.
 
-#### 3: COMMAND ####
+#### command (array variable) ####
 
-This is the _command function_ that you must execute to start _your service_.
+This is the _commands_ that you must execute to start _your service_.
 
-**Parameters:**
+### Optional Configuration Variables
 
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
+#### workDir ####
 
-#### 4: WORK_DIR ####
+The working directory is set, where it must be located to execute the _command_.
 
-**This is optional**
+#### onStart (array variable) ####
 
-The working directory is set, where it must be located to execute the _COMMAND_.
-
-#### 5: ON_START ####
-
-**This is optional**
-
-Function to execute before _Service Funcion_ start.
+Commands to execute before _Service_ start.
 
 If function exit code is not `0` (zero), the service will not started.
 
-**Parameters:**
+#### onFinish (array variable) ####
 
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
+Commands to execute after _Service_ finish/exit.
 
-#### 6: ON_FINISH ####
+## servicesMenu function ##
 
-**This is optional**
-
-_Function_ to execute after _Service Function_ finish/exit.
-
-**Parameters:**
-
-1. `action`: Caller script action (`start`, `stop`, `restart`, `status`, `run`, `debug`, `tail`, `tail-log` or `tail-error`).
-2. `serviceExitCode`: The **COMMAND** _Exit Code_.
+Just call only this function to make everything work!
 
 ## Actions ##
 
@@ -96,37 +83,42 @@ If it is an invalid action or emtpy action, you can see the _help_.
 
 ## Examples ##
 
-### MongoDB Service ###
+### Telegraf Service ###
 
-**mongo** file:
+**telegraf.sh** file:
 
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+appDir=$(cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd)
 
-# Import or paste "services.sh"
-. ./services.sh
+export LOG_FILE_PATH="$serviceName.log"
+export LOG_ERROR_FILE_PATH="$serviceName.error.log"
+export PID_FILE_PATH="$serviceName.pid"
 
-run-mongo() {
-  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
-  sudo mongod
-}
+. "$appDir/services.sh"
 
-action="$1"
-serviceName="mongodb"
-command="run-mongo"
+# Action to execute (mandatoty)
+action="$1"  
+# Friendly service name (mandatoty)
+serviceName= "telegraf"
+# Command to run (mandatoty, array variable)
+command=(./telegraf --config telegraf.conf)
+# Working Directory (optional)
+workDir="$appDir"
+# On start (optional, array variable)
+#onStart=()
+# On finish (optional, array variable)
+#onFinish=()
 
-serviceMenu "$action" "$serviceName" "$command"
+serviceMenu
 ```
 
 In console:
 
 ```bash
-$ mongo status
-$ mongo restart
+$ telegraf.sh status
+$ telegraf.sh restart
 ```
 
 ### Custom Service ###
@@ -136,64 +128,24 @@ $ mongo restart
 ```bash
 #!/usr/bin/env bash
 
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
+export PID_FILE_PATH="my-service.pid"
+export LOG_FILE_PATH="my-service.log"
+export LOG_ERROR_FILE_PATH="my-service.error.log"
 
-# Import or paste "services.sh"
 . ./services.sh
 
-run-custom() {
-  bash my-service-script.sh
-}
+# Action to execute (mandatoty)
+action="$1"  
+# Friendly service name (mandatoty)
+serviceName="Example Service"
+# Command to run (mandatoty, array variable)
+command=("ping 1.1.1.1")
+# Working Directory (optional)
+#workDir=
+# On start (optional, array variable)
+#onStart=()
+# On finish (optional, array variable)
+#onFinish=()
 
-action="$1"
-serviceName="my-service"
-command="run-custom"
-workDir="/opt/my-service"
-
-serviceMenu "$action" "$serviceName" "$command" "$workDir"
-```
-
-### Multiple Services ###
-
-**my-services** file:
-
-```bash
-#!/usr/bin/env bash
-
-export PID_FILE_PATH="/tmp/my-service.pid"
-export LOG_FILE_PATH="/tmp/my-service.log"
-export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
-
-# Import or paste "services.sh"
-. ./services.sh
-
-# Mong
-run-mongo() {
-  sudo rm -f /data/db/mongod.lock >/dev/null 2>&1
-  sudo mongod
-}
-
-mongo() {
-  serviceMenu "$1" "mongodb" "run-mongo"
-}
-
-run-custom() {
-  bash my-script.sh
-}
-
-# Custom Service
-custom() {
-  serviceMenu "$1" "my-script" "run-custom" "/home/user/my-project"
-}
-
-$1 $2
-```
-
-In console:
-
-```bash
-$ my-services mongo status
-$ my-services custom restart
+serviceMenu
 ```
