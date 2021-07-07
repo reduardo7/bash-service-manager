@@ -1,5 +1,5 @@
 # Bash Service Manager
-# Project: https://github.com/artemiuss/bash-service-manager
+# Project: https://github.com/reduardo7/bash-service-manager
 
 # export PID_FILE_PATH="/tmp/my-service.pid"
 # export LOG_FILE_PATH="/tmp/my-service.log"
