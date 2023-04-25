@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 
+# Service definition
+
 export PID_FILE_PATH="my-service.pid"
 export LOG_FILE_PATH="my-service.log"
 export LOG_ERROR_FILE_PATH="my-service.error.log"
 
+# Bootstrap
 . ./services.sh
 
 # Action to execute (mandatoty)
-action="$1"  
+action="$1"
 # Friendly service name (mandatoty)
 serviceName="Example Service"
 # Command to run (mandatoty, array variable)
-command=("ping 1.1.1.1")
+command=("$(pwd)/test.sh" 'Hello world!')
 # Working Directory (optional)
 #workDir=
 # On start (optional, array variable)
@@ -19,4 +22,7 @@ command=("ping 1.1.1.1")
 # On finish (optional, array variable)
 #onFinish=()
 
+# Menu
 serviceMenu
+
+# vim: filetype=sh tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab

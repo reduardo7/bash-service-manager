@@ -1,6 +1,13 @@
 # Bash Service Manager
 # Project: https://github.com/reduardo7/bash-service-manager
 
+###############################################################################
+# BashX | https://github.com/reduardo7/bashx
+set +ex;export BASHX_VERSION="v3.1.2"
+(export LC_CTYPE=C;export LC_ALL=C;export LANG=C;set -e;x() { s="$*";echo "# Error: ${s:-Installation fail}" >&2;exit 1;};d=/dev/null;[ ! -z "$BASHX_VERSION" ] || x BASHX_VERSION is required;export BASHX_DIR="${BASHX_DIR:-${HOME:-/tmp}/.bashx/$BASHX_VERSION}";if [ ! -d "$BASHX_DIR" ];then u="https://raw.githubusercontent.com/reduardo7/bashx/$BASHX_VERSION/src/setup.sh";if type wget >$d 2>&1 ;then sh -c "$(wget -q $u -O -)" || x;elif type curl >$d 2>&1 ;then sh -c "$(curl -fsSL $u)" || x;else x wget or curl are required. Install wget or curl to continue;fi;fi) || exit $?
+. "${HOME:-/tmp}/.bashx/${BASHX_VERSION}/src/init.sh"
+###############################################################################
+
 # export PID_FILE_PATH="/tmp/my-service.pid"
 # export LOG_FILE_PATH="/tmp/my-service.log"
 # export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
@@ -8,7 +15,7 @@
 # Action to execute (mandatoty)
 #action="$1"  
 # Friendly service name (mandatoty)
-#serviceName= 
+#serviceName=
 # Command to run (mandatoty, array variable)
 #command=()
 # Working Directory (optional)
@@ -18,41 +25,26 @@
 # On finish (optional, array variable)
 #onFinish=()
 
-@e() {
-  echo "# $*"
-}
-
-@warn() {
-  @e "Warning: $*" >&2
-}
-
-@err() {
-  @e "Error! $*" >&2
-  exit 1
-}
-
 @execService() {
-  [ ! -z "$workDir" ] && cd "$workDir"
+  [ -z "$workDir" ] || cd "$workDir"
 
-  if [ ! -z "$onStart" ] ; 
-  then
-    ( "${onStart[@]}")
-    exitCode=$?
+  if [ ! -z "$onStart" ] ; then
+    ( "${onStart[@]}" )
+    exit_code=$?
 
-    if [ $exitCode -gt 0 ] ; 
-    then
-      @warn "Start service fail"
-      exit $exitCode
+    if [ $exit_code -gt 0 ] ; then
+      @log.warn "Start service fail"
+      exit $exit_code
     fi
   fi
 
-  if [ ! -z "$onFinish" ] ; 
-  then
+  if [ ! -z "$onFinish" ] ; then
     onServiceFinish() {
-      local exitCode=$?
-      "${onFinish[@]}"
-      return $exitCode
+      local exit_code=$?
+      ( "${onFinish[@]}" )
+      return $exit_code
     }
+
     trap onServiceFinish EXIT
   fi
 
@@ -61,71 +53,76 @@
 }
 
 @serviceStatus() {
-  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ];
-  then
+  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ] ; then
     local PID=$(cat "$PID_FILE_PATH")
-    killResultMessage=$(kill -0 $PID 2>&1)
-    killResultCode=$?
+    local kill_result_message=$(kill -0 $PID 2>&1)
+    local kill_result_code=$?
 
-    if (( $killResultCode == 0 ));
-    then
-      @e "Service $serviceName is runnig with PID $PID"
+    if (( $kill_result_code == 0 )) ; then
+      @log "Service $serviceName is runnig with PID $PID"
       return 0
-    elif [[ $killResultMessage == *"kill: ($PID) - No such process" ]]
-    then
-      @warn "Service $serviceName is not running (process PID $PID not exists)"
+    elif [[ $kill_result_message == *"kill: ($PID) - No such process" ]] ; then
+      @log.warn "Service $serviceName is not running (process PID $PID not exists)"
       return 2
-    elif [[ $killResultMessage == *"kill: ($PID) - Operation not permitted" ]]
-    then
-      @warn "Status of $serviceName service could not be obtained (operation not permitted for process PID $PID)"
+    elif [[ $kill_result_message == *"kill: ($PID) - Operation not permitted" ]] ; then
+      @log.warn "Status of $serviceName service could not be obtained (operation not permitted for process PID $PID)"
       return 1
     else
-      @warn "Status of $serviceName service could not be obtained (process PID $PID)"
-      return 1
+      @log.warn "Status of $serviceName service could not be obtained (process PID $PID)"
+      return 3
     fi
   else
-    @warn "Service $serviceName is not running"
-    return 2
+    @log.warn "Service $serviceName is not running"
+    return 4
   fi
 }
 
 @serviceStart() {
-  if @serviceStatus "$serviceName" >/dev/null 2>&1
-  then
-    @e "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
+  if @serviceStatus ; then
+    @log "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
     return 0
   fi
 
-  @e "Starting ${serviceName} service..."
-  touch "$LOG_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_FILE_PATH file"
-  touch "$LOG_ERROR_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $LOG_ERROR_FILE_PATH file"
-  touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not create $PID_FILE_PATH file"
+  @log "Starting ${serviceName} service..."
+  touch "$LOG_FILE_PATH" >/dev/null || @app.error "Can not create $LOG_FILE_PATH file"
+  touch "$LOG_ERROR_FILE_PATH" >/dev/null || @app.error "Can not create $LOG_ERROR_FILE_PATH file"
+  touch "$PID_FILE_PATH" >/dev/null || @app.error "Can not create $PID_FILE_PATH file"
 
-  @execService  
+  @execService
+  @log "Service ${serviceName} started with PID $(cat "$PID_FILE_PATH")"
   sleep 2
 
-  @serviceStatus "$serviceName" >/dev/null 2>&1
-  return $?
+  @serviceStatus
+  local exit_code=$?
+
+  if (( ${exit_code} == 0 )); then
+    @log "Service ${serviceName} started successfully"
+  else
+    @log.warn "Service ${serviceName} could not be started (exit code: ${exit_code})"
+    cat "$LOG_FILE_PATH"
+    cat "$LOG_ERROR_FILE_PATH" >&2
+  fi
+
+  return ${exit_code}
 }
 
 @serviceStop() {
-  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; 
-  then
-    touch "$PID_FILE_PATH" >/dev/null 2>&1 || @err "Can not touch $PID_FILE_PATH file"
+  if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
+    touch "$PID_FILE_PATH" >/dev/null || @app.error "Can not touch $PID_FILE_PATH file"
 
-    @e "Stopping ${serviceName}..."
+    @log "Stopping ${serviceName}..."
+
     for p in $(cat "$PID_FILE_PATH"); do
-      if kill -0 $p >/dev/null 2>&1
-      then
+      if kill -0 $p >/dev/null 2>&1 ; then
         kill $p
         sleep 2
-        if kill -0 $p >/dev/null 2>&1
-        then
+
+        if kill -0 $p >/dev/null 2>&1 ; then
           kill -9 $p
           sleep 2
-          if kill -0 $p >/dev/null 2>&1
-          then
-            @e "Exec: sudo kill -9 $p"
+
+          if kill -0 $p >/dev/null 2>&1 ; then
+            @log "Exec: sudo kill -9 $p"
             sudo kill -9 $p
             sleep 2
           fi
@@ -133,17 +130,17 @@
       fi
     done
 
-    if @serviceStatus "$serviceName" >/dev/null 2>&1
-    then
-      @err "Error stopping Service ${serviceName}! Service is still running with PID $(cat "$PID_FILE_PATH")"
+    if @serviceStatus ; then
+      @app.error "Error stopping Service ${serviceName}! Service is still running with PID $(cat "$PID_FILE_PATH")"
     fi
 
-    rm -f "$PID_FILE_PATH" || @err "Can not delete $PID_FILE_PATH file"
+    rm -f "$PID_FILE_PATH" || @app.error "Can not delete $PID_FILE_PATH file"
     return 0
   else
-    @warn "Service $serviceName is not running"
+    @log.warn "Service $serviceName is not running"
   fi
 }
+
 @serviceRestart() {
   @serviceStop
   sleep 2
@@ -167,7 +164,7 @@
       exit 0
       ;;
     *)
-      @e "Usage: {log|error}"
+      @log "Usage: {log|error}"
       exit 1
       ;;
   esac
@@ -175,10 +172,10 @@
 
 @serviceDebug() {
   @serviceStop
-  @e "Debugging ${serviceName}..."
+  @log "Debugging ${serviceName}..."
   @execService
   exitCode=$?
-  @e "Finish debugging ${serviceName}"
+  @log "Finish debugging ${serviceName} (exit code ${exitCode})"
   return $exitCode
 }
 
@@ -199,7 +196,7 @@ serviceMenu() {
       ;;
     run)
       ( 
-        [ ! -z "$workDir" ] && cd "$workDir"
+        [ -z "$workDir" ] || cd "$workDir"
         "${command[@]}"
       )
       ;;
@@ -216,8 +213,10 @@ serviceMenu() {
       @serviceTail "error"
       ;;
     *)
-      @e "Usage: {start|stop|restart|status|run|debug|tail(-{log|error})}"
+      @log "Usage: {start|stop|restart|status|run|debug|tail(-{log|error})}"
       exit 1
       ;;
   esac
 }
+
+# vim: filetype=sh tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab
