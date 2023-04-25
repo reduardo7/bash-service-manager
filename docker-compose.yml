@@ -1,0 +1,12 @@
+version: '3.5'
+
+services:
+  test:
+    build:
+      context: .
+    image: bash-service-manager-test
+    volumes:
+      - ./docker/start.sh:/app/start.sh:ro
+      - ./example-service:/app/example-service:ro
+      - ./services.sh:/app/services.sh:ro
+      - ./test.sh:/app/test.sh:ro

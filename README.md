@@ -1,9 +1,16 @@
 # Bash Service Manager
+
 Bash Script's for Service Manager
 
 Create your custom service for development.
 
-## Usage ##
+## Test
+
+```bash
+docker compose run --rm test
+```
+
+## Usage
 
 1. Create your _service script_.
 2. Define the configuration environment variables: `PID_FILE_PATH`, `LOG_FILE_PATH` and `LOG_ERROR_FILE_PATH`.
@@ -15,61 +22,61 @@ Create your custom service for development.
 6. Make your new _service script_ executable: `chmod a+x my-service-script`
 7. Use it!
 
-## Configuration Environment Variables ##
+## Configuration Environment Variables
 
-### PID_FILE_PATH ###
+### PID_FILE_PATH
 
 Configure the `PID_FILE_PATH` variable before import `service.sh` script, and define the **PID** file path.
 
-### LOG_FILE_PATH ###
+### LOG_FILE_PATH
 
 Configure the `LOG_FILE_PATH` variable before import `service.sh` script, and define the **LOG** file path.
 
-### LOG_ERROR_FILE_PATH ###
+### LOG_ERROR_FILE_PATH
 
 Configure the `LOG_ERROR_FILE_PATH` variable before import `service.sh` script, and define the **ERROR** file path.
 
-## Configuration Variables ###
+## Configuration Variables
 
 ### Mandatory Configuration Variables
 
-#### action ####
+#### action
 
 This is the action to execute. Please see _Actions_ section below for more information.
 
-If it is an invalid action or emtpy action, you can see the _help_.
+If it is an invalid action or empty action, you can see the _help_.
 
-#### serviceName ####
+#### serviceName
 
 This is the user friendly _Service Name_.
 
-#### command (array variable) ####
+#### command (array variable)
 
 This is the _commands_ that you must execute to start _your service_.
 
 ### Optional Configuration Variables
 
-#### workDir ####
+#### workDir
 
 The working directory is set, where it must be located to execute the _command_.
 
-#### onStart (array variable) ####
+#### onStart (array variable)
 
 Commands to execute before _Service_ start.
 
 If function exit code is not `0` (zero), the service will not started.
 
-#### onFinish (array variable) ####
+#### onFinish (array variable)
 
 Commands to execute after _Service_ finish/exit.
 
-## servicesMenu function ##
+## servicesMenu function
 
 Just call only this function to make everything work!
 
-## Actions ##
+## Actions
 
-If it is an invalid action or emtpy action, you can see the _help_.
+If it is an invalid action or empty action, you can see the _help_.
 
 * `start`: Start the _service_.
 * `stop`: Stop the _service_.
@@ -81,9 +88,9 @@ If it is an invalid action or emtpy action, you can see the _help_.
 * `run`: Execute _service command_ and exit (this action **does not** stop the _service_).
 * `debug`: Stop _service_ (if running) and run _service command_ and exit.
 
-## Examples ##
+## Examples
 
-### Telegraf Service ###
+### Telegraf Service
 
 **telegraf.sh** file:
 
@@ -98,11 +105,11 @@ export PID_FILE_PATH="$serviceName.pid"
 
 . "$appDir/services.sh"
 
-# Action to execute (mandatoty)
+# Action to execute (mandatory)
 action="$1"  
-# Friendly service name (mandatoty)
+# Friendly service name (mandatory)
 serviceName= "telegraf"
-# Command to run (mandatoty, array variable)
+# Command to run (mandatory, array variable)
 command=(./telegraf --config telegraf.conf)
 # Working Directory (optional)
 workDir="$appDir"
@@ -121,7 +128,7 @@ $ telegraf.sh status
 $ telegraf.sh restart
 ```
 
-### Custom Service ###
+### Custom Service
 
 **my-service** file:
 
@@ -134,11 +141,11 @@ export LOG_ERROR_FILE_PATH="my-service.error.log"
 
 . ./services.sh
 
-# Action to execute (mandatoty)
+# Action to execute (mandatory)
 action="$1"  
-# Friendly service name (mandatoty)
+# Friendly service name (mandatory)
 serviceName="Example Service"
-# Command to run (mandatoty, array variable)
+# Command to run (mandatory, array variable)
 command=("ping 1.1.1.1")
 # Working Directory (optional)
 #workDir=
