@@ -2,27 +2,24 @@
 
 # Service definition
 
-export PID_FILE_PATH="my-service.pid"
-export LOG_FILE_PATH="my-service.log"
-export LOG_ERROR_FILE_PATH="my-service.error.log"
-
 # Bootstrap
 . ./services.sh
 
-# Action to execute (mandatoty)
-action="$1"
 # Friendly service name (mandatoty)
-serviceName="Example Service"
+export SERVICE_NAME="Example Service"
 # Command to run (mandatoty, array variable)
-command=("$(pwd)/test.sh" 'Hello world!')
+export SERVICE_CMD=("$(pwd)/test.sh" 'Hello world!')
 # Working Directory (optional)
-#workDir=
+#SERVICE_WORK_DIR=
 # On start (optional, array variable)
-#onStart=()
+#SERVICE_ON_START=()
 # On finish (optional, array variable)
-#onFinish=()
+#SERVICE_ON_FINISH=()
+
+export PID_FILE_PATH="${SERVICE_NAME}.pid"
+export LOG_FILE_PATH="${SERVICE_NAME}.log"
 
 # Menu
-serviceMenu
+serviceMenu "$1"
 
 # vim: filetype=sh tabstop=2 softtabstop=0 expandtab shiftwidth=2 smarttab

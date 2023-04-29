@@ -10,26 +10,23 @@ set +ex;export BASHX_VERSION="v3.1.2"
 
 # export PID_FILE_PATH="/tmp/my-service.pid"
 # export LOG_FILE_PATH="/tmp/my-service.log"
-# export LOG_ERROR_FILE_PATH="/tmp/my-service.error.log"
 
-# Action to execute (mandatoty)
-#action="$1"  
 # Friendly service name (mandatoty)
-#serviceName=
+#SERVICE_NAME=
 # Command to run (mandatoty, array variable)
-#command=()
+#SERVICE_CMD=()
 # Working Directory (optional)
-#workDir=
+#SERVICE_WORK_DIR=
 # On start (optional, array variable)
-#onStart=()
+#SERVICE_ON_START=()
 # On finish (optional, array variable)
-#onFinish=()
+#SERVICE_ON_FINISH=()
 
 @execService() {
-  [ -z "$workDir" ] || cd "$workDir"
+  [ -z "$SERVICE_WORK_DIR" ] || cd "$SERVICE_WORK_DIR"
 
-  if [ ! -z "$onStart" ] ; then
-    ( "${onStart[@]}" )
+  if [ ! -z "$SERVICE_ON_START" ] ; then
+    ( "${SERVICE_ON_START[@]}" )
     exit_code=$?
 
     if [ $exit_code -gt 0 ] ; then
@@ -48,7 +45,11 @@ set +ex;export BASHX_VERSION="v3.1.2"
     trap onServiceFinish EXIT
   fi
 
-  nohup "${command[@]}" >>"$LOG_FILE_PATH" 2>>"$LOG_ERROR_FILE_PATH" & echo $! >"$PID_FILE_PATH" 
+  nohup "${SERVICE_CMD[@]}" \
+    >>"$LOG_FILE_PATH" \
+    2>>"$LOG_FILE_PATH" \
+    & echo $! >"$PID_FILE_PATH"
+
   return $?
 }
 
@@ -59,48 +60,46 @@ set +ex;export BASHX_VERSION="v3.1.2"
     local kill_result_code=$?
 
     if (( $kill_result_code == 0 )) ; then
-      @log "Service $serviceName is runnig with PID $PID"
+      @log "Service $SERVICE_NAME is runnig with PID $PID"
       return 0
     elif [[ $kill_result_message == *"kill: ($PID) - No such process" ]] ; then
-      @log.warn "Service $serviceName is not running (process PID $PID not exists)"
+      @log.warn "Service $SERVICE_NAME is not running (process PID $PID not exists)"
       return 2
     elif [[ $kill_result_message == *"kill: ($PID) - Operation not permitted" ]] ; then
-      @log.warn "Status of $serviceName service could not be obtained (operation not permitted for process PID $PID)"
+      @log.warn "Status of $SERVICE_NAME service could not be obtained (operation not permitted for process PID $PID)"
       return 1
     else
-      @log.warn "Status of $serviceName service could not be obtained (process PID $PID)"
+      @log.warn "Status of $SERVICE_NAME service could not be obtained (process PID $PID)"
       return 3
     fi
   else
-    @log.warn "Service $serviceName is not running"
+    @log.warn "Service $SERVICE_NAME is not running"
     return 4
   fi
 }
 
 @serviceStart() {
   if @serviceStatus ; then
-    @log "Service ${serviceName} already running with PID $(cat "$PID_FILE_PATH")"
+    @log "Service ${SERVICE_NAME} already running with PID $(cat "$PID_FILE_PATH")"
     return 0
   fi
 
-  @log "Starting ${serviceName} service..."
+  @log "Starting ${SERVICE_NAME} service..."
   touch "$LOG_FILE_PATH" >/dev/null || @app.error "Can not create $LOG_FILE_PATH file"
-  touch "$LOG_ERROR_FILE_PATH" >/dev/null || @app.error "Can not create $LOG_ERROR_FILE_PATH file"
   touch "$PID_FILE_PATH" >/dev/null || @app.error "Can not create $PID_FILE_PATH file"
 
   @execService
-  @log "Service ${serviceName} started with PID $(cat "$PID_FILE_PATH")"
+  @log "Service ${SERVICE_NAME} started with PID $(cat "$PID_FILE_PATH")"
   sleep 2
 
   @serviceStatus
   local exit_code=$?
 
   if (( ${exit_code} == 0 )); then
-    @log "Service ${serviceName} started successfully"
+    @log "Service ${SERVICE_NAME} started successfully"
   else
-    @log.warn "Service ${serviceName} could not be started (exit code: ${exit_code})"
+    @log.warn "Service ${SERVICE_NAME} could not be started (exit code: ${exit_code})"
     cat "$LOG_FILE_PATH"
-    cat "$LOG_ERROR_FILE_PATH" >&2
   fi
 
   return ${exit_code}
@@ -110,7 +109,7 @@ set +ex;export BASHX_VERSION="v3.1.2"
   if [ -f "$PID_FILE_PATH" ] && [ ! -z "$(cat "$PID_FILE_PATH")" ]; then
     touch "$PID_FILE_PATH" >/dev/null || @app.error "Can not touch $PID_FILE_PATH file"
 
-    @log "Stopping ${serviceName}..."
+    @log "Stopping ${SERVICE_NAME}..."
 
     for p in $(cat "$PID_FILE_PATH"); do
       if kill -0 $p >/dev/null 2>&1 ; then
@@ -131,13 +130,13 @@ set +ex;export BASHX_VERSION="v3.1.2"
     done
 
     if @serviceStatus ; then
-      @app.error "Error stopping Service ${serviceName}! Service is still running with PID $(cat "$PID_FILE_PATH")"
+      @app.error "Error stopping Service ${SERVICE_NAME}! Service is still running with PID $(cat "$PID_FILE_PATH")"
     fi
 
     rm -f "$PID_FILE_PATH" || @app.error "Can not delete $PID_FILE_PATH file"
     return 0
   else
-    @log.warn "Service $serviceName is not running"
+    @log.warn "Service $SERVICE_NAME is not running"
   fi
 }
 
@@ -147,41 +146,18 @@ set +ex;export BASHX_VERSION="v3.1.2"
   @serviceStart
 }
 
-@serviceTail() {
-  local type="$1"
-
-  case "$type" in
-    log)
-      tail -f "$LOG_FILE_PATH"
-      exit 0
-      ;;
-    error)
-      tail -f "$LOG_ERROR_FILE_PATH"
-      exit 0
-      ;;
-    all)
-      tail -f "$LOG_FILE_PATH" "$LOG_ERROR_FILE_PATH"
-      exit 0
-      ;;
-    *)
-      @log "Usage: {log|error}"
-      exit 1
-      ;;
-  esac
-}
-
 @serviceDebug() {
   @serviceStop
-  @log "Debugging ${serviceName}..."
+  @log "Debugging ${SERVICE_NAME}..."
   @execService
   exitCode=$?
-  @log "Finish debugging ${serviceName} (exit code ${exitCode})"
+  @log "Finish debugging ${SERVICE_NAME} (exit code ${exitCode})"
   return $exitCode
 }
 
 # Service menu
 serviceMenu() {
-  case "$action" in
+  case "$1" in
     start)
       @serviceStart
       ;;
@@ -195,25 +171,24 @@ serviceMenu() {
       @serviceStatus
       ;;
     run)
-      ( 
-        [ -z "$workDir" ] || cd "$workDir"
-        "${command[@]}"
+      (
+        [ -z "$SERVICE_WORK_DIR" ] || cd "$SERVICE_WORK_DIR"
+        "${SERVICE_CMD[@]}"
       )
       ;;
     debug)
       @serviceDebug
       ;;
     tail)
-      @serviceTail "all"
+      set -ex
+      tail -f -n 10 "${LOG_FILE_PATH}"
       ;;
-    tail-log)
-      @serviceTail "log"
-      ;;
-    tail-error)
-      @serviceTail "error"
+    logs)
+      set -ex
+      cat "${LOG_FILE_PATH}"
       ;;
     *)
-      @log "Usage: {start|stop|restart|status|run|debug|tail(-{log|error})}"
+      @log "Usage: {start|stop|restart|status|run|debug|tail}"
       exit 1
       ;;
   esac

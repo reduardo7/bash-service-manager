@@ -6,6 +6,7 @@ x=0
 
 while true; do
   echo "[$x] $@"
+  echo "[$x] ERR" >&2
   sleep 1
   x=$((x+1))
 done
